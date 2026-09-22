@@ -1,8 +1,6 @@
 body {
-    background-image: url("../imgs/Black And White Wave GIF by tdhooper.gif");
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
+    /* Quitamos el GIF y ponemos un fondo negro sólido de base */
+    background-color: #000;
     height: 100vh;
     margin: 0;
     color: #f5f3f3;
@@ -12,13 +10,24 @@ body {
     justify-content: center;
     align-items: center;
 
+    /* ===== ESTILOS DEL NUEVO FONDO ANIMADO ===== */
+    #bg-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1; /* Esto asegura que se quede detrás de tu menú */
+        pointer-events: none; /* Para que no interfiera si el usuario hace clic */
+    }
+
     /* ===== ESTILOS PARA EL INDEX PRINCIPAL (mainmenu SIN layout) ===== */
     &.mainmenu {
         main {
             min-width: 300px;
             max-width: 800px;
             width: 100%;
-            background-color: rgba(98, 119, 131, 0.9);
+            background-color: rgba(64, 75, 82, 0.9);
             padding: 2rem;
             border-radius: 1.5rem;
             box-shadow: 0 15px 40px rgba(0,0,0,0.6);
@@ -57,7 +66,7 @@ body {
 
                 a:is(:link, :visited) {
                     align-items: center;
-                    background-color: rgb(109, 187, 206);
+                    background-color: rgb(140, 165, 184);
                     border-radius: 4rem;
                     color: rgb(67, 93, 91);
                     display: flex;
@@ -69,13 +78,13 @@ body {
                     max-width: 100%;
 
                     &:is(:hover) {
-                        background-color: rgb(149, 220, 241);
+                        background-color: rgb(199, 199, 199);
                         transform: scale(1.05);
                     }
 
                     span {
                         align-items: center;
-                        background-color: rgb(255, 255, 255);
+                        background-color: rgb(252, 252, 252);
                         border-radius: 50%;
                         display: flex;
                         justify-content: center;
@@ -206,7 +215,7 @@ body {
                     align-items: center;
                     gap: 0.8rem;
                     padding: 0.6rem 1rem;
-                    background-color: rgba(135, 177, 188, 0.85);
+                    background-color: rgba(113, 200, 213, 0.85);
                     border-radius: 4rem;
                     color: rgb(67, 93, 91);
                     text-decoration: none;

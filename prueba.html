@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorio de Mapa Topográfico Vectorial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            display: block;
+        }
+
+        .glass-panel {
+            background: rgba(10, 10, 12, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Custom minimal slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 9999px;
+            height: 3px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            transition: transform 0.15s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.3);
+        }
+
+        pre::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        pre::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="relative w-screen h-screen overflow-hidden select-none">
+
+    <!-- Full-screen Canvas Animation -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Top Left Minimal Branding -->
+    <div class="fixed top-5 left-5 z-10 pointer-events-none flex items-center gap-2">
+        <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+        <span class="text-xs font-mono tracking-wider text-zinc-400 uppercase">Topo Lab // Vector Noise</span>
+    </div>
+
+    <!-- Floating Minimal Controls Panel (Bottom Right Corner) -->
+    <div id="controls-panel" class="fixed bottom-5 right-5 z-20 w-72 glass-panel rounded-xl transition-all duration-300 border border-white/10">
+        
+        <!-- Header / Collapse Bar -->
+        <div class="p-3.5 flex items-center justify-between border-b border-white/10 cursor-pointer" id="panel-header">
+            <div class="flex items-center gap-2">
+                <i data-lucide="sliders" class="w-3.5 h-3.5 text-zinc-300"></i>
+                <span class="text-xs font-semibold tracking-wide text-zinc-200">Parámetros</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button id="reset-btn" title="Restablecer" class="p-1 text-zinc-400 hover:text-white transition">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                </button>
+                <button id="toggle-btn" title="Minimizar" class="p-1 text-zinc-400 hover:text-white transition">
+                    <i data-lucide="chevron-down" id="toggle-icon" class="w-4 h-4 transition-transform duration-200"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Controls Form -->
+        <div id="panel-body" class="p-3.5 space-y-3.5 text-xs">
+            
+            <!-- Speed Control -->
+            <div class="space-y-1">
+                <div class="flex justify-between font-mono text-[11px]">
+                    <span class="text-zinc-400">Velocidad</span>
+                    <span id="val-speed" class="text-zinc-200">0.0006</span>
+                </div>
+                <input type="range" id="param-speed" min="0.0001" max="0.002" step="0.0001" value="0.0006" class="w-full">
+            </div>
+
+            <!-- Scale / Zoom Control -->
+            <div class="space-y-1">
+                <div class="flex justify-between font-mono text-[11px]">
+                    <span class="text-zinc-400">Escala (Ondas)</span>
+                    <span id="val-scale" class="text-zinc-200">0.0022</span>
+                </div>
+                <input type="range" id="param-scale" min="0.0008" max="0.005" step="0.0001" value="0.0022" class="w-full">
+            </div>
+
+            <!-- Contour Lines Density -->
+            <div class="space-y-1">
+                <div class="flex justify-between font-mono text-[11px]">
+                    <span class="text-zinc-400">Densidad de líneas</span>
+                    <span id="val-density" class="text-zinc-200">18</span>
+                </div>
+                <input type="range" id="param-density" min="6" max="32" step="1" value="18" class="w-full">
+            </div>
+
+            <!-- Line Thickness -->
+            <div class="space-y-1">
+                <div class="flex justify-between font-mono text-[11px]">
+                    <span class="text-zinc-400">Grosor</span>
+                    <span id="val-thickness" class="text-zinc-200">1.2px</span>
+                </div>
+                <input type="range" id="param-thickness" min="0.5" max="3" step="0.1" value="1.2" class="w-full">
+            </div>
+
+            <!-- Opacity -->
+            <div class="space-y-1">
+                <div class="flex justify-between font-mono text-[11px]">
+                    <span class="text-zinc-400">Opacidad</span>
+                    <span id="val-opacity" class="text-zinc-200">0.85</span>
+                </div>
+                <input type="range" id="param-opacity" min="0.2" max="1" step="0.05" value="0.85" class="w-full">
+            </div>
+
+            <!-- Action Button -->
+            <div class="pt-2 border-t border-white/10">
+                <button id="open-code-btn" class="w-full py-2 bg-white hover:bg-zinc-200 text-black font-semibold rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
+                    <i data-lucide="code" class="w-3.5 h-3.5"></i>
+                    <span>Obtener Código</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Code Modal -->
+    <div id="code-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="glass-panel w-full max-w-xl rounded-2xl p-5 border border-white/10 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="file-code" class="w-4 h-4 text-zinc-300"></i>
+                    <h3 class="text-sm font-semibold text-white">Código HTML/JS Listo</h3>
+                </div>
+                <button id="close-modal-btn" class="text-zinc-400 hover:text-white p-1">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-zinc-400">Copia y pega este código en un archivo `.html` en tu proyecto:</p>
+
+            <div class="relative">
+                <pre class="bg-zinc-950 border border-white/10 rounded-xl p-4 text-[11px] font-mono text-zinc-300 max-h-72 overflow-y-auto select-text"><code id="code-output"></code></pre>
+                <button id="copy-code-btn" class="absolute top-2.5 right-2.5 bg-white text-black font-medium px-3 py-1.5 rounded-lg text-xs hover:bg-zinc-200 transition flex items-center gap-1">
+                    <i data-lucide="copy" class="w-3 h-3"></i>
+                    <span>Copiar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Compact 2D Simplex Noise Implementation
+        const SimplexNoise = (function() {
+            const F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
+            const G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
+            
+            function Noise() {
+                this.p = new Uint8Array(256);
+                this.perm = new Uint8Array(512);
+                this.permMod12 = new Uint8Array(512);
+                for (let i = 0; i < 256; i++) this.p[i] = Math.floor(Math.random() * 256);
+                for (let i = 0; i < 512; i++) {
+                    this.perm[i] = this.p[i & 255];
+                    this.permMod12[i] = (this.perm[i] % 12);
+                }
+            }
+
+            Noise.prototype.noise2D = function(xin, yin) {
+                let n0, n1, n2;
+                const s = (xin + yin) * F2;
+                const i = Math.floor(xin + s);
+                const j = Math.floor(yin + s);
+                const t = (i + j) * G2;
+                const X0 = i - t;
+                const Y0 = j - t;
+                const x0 = xin - X0;
+                const y0 = yin - Y0;
+
+                let i1 = x0 > y0 ? 1 : 0;
+                let j1 = x0 > y0 ? 0 : 1;
+
+                const x1 = x0 - i1 + G2;
+                const y1 = y0 - j1 + G2;
+                const x2 = x0 - 1.0 + 2.0 * G2;
+                const y2 = y0 - 1.0 + 2.0 * G2;
+
+                const ii = i & 255;
+                const jj = j & 255;
+
+                const g = [
+                    [1,1],[-1,1],[1,-1],[-1,-1],
+                    [1,0],[-1,0],[0,1],[0,-1],
+                    [1,1],[-1,1],[1,-1],[-1,-1]
+                ];
+
+                let t0 = 0.5 - x0*x0 - y0*y0;
+                n0 = t0 < 0 ? 0.0 : Math.pow(t0, 4) * (g[this.permMod12[ii + this.perm[jj]]][0] * x0 + g[this.permMod12[ii + this.perm[jj]]][1] * y0);
+
+                let t1 = 0.5 - x1*x1 - y1*y1;
+                n1 = t1 < 0 ? 0.0 : Math.pow(t1, 4) * (g[this.permMod12[ii + i1 + this.perm[jj + j1]]][0] * x1 + g[this.permMod12[ii + i1 + this.perm[jj + j1]]][1] * y1);
+
+                let t2 = 0.5 - x2*x2 - y2*y2;
+                n2 = t2 < 0 ? 0.0 : Math.pow(t2, 4) * (g[this.permMod12[ii + 1 + this.perm[jj + 1]]][0] * x2 + g[this.permMod12[ii + 1 + this.perm[jj + 1]]][1] * y2);
+
+                return 70.0 * (n0 + n1 + n2);
+            };
+
+            return Noise;
+        })();
+
+        // Canvas Setup
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        const simplex = new SimplexNoise();
+
+        // Config state
+        const config = {
+            speed: 0.0006,
+            scale: 0.0022,
+            density: 18,
+            thickness: 1.2,
+            opacity: 0.85,
+            step: 12
+        };
+
+        let w, h, cols, rows, zOffset = 0;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            cols = Math.ceil(w / config.step) + 1;
+            rows = Math.ceil(h / config.step) + 1;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        function draw() {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, w, h);
+
+            const grid = new Float32Array(cols * rows);
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const x = c * config.step;
+                    const y = r * config.step;
+                    grid[r * cols + c] = (simplex.noise2D(x * config.scale, y * config.scale + zOffset) + 1) * 0.5;
+                }
+            }
+
+            ctx.lineWidth = config.thickness;
+
+            for (let l = 1; l < config.density; l++) {
+                const thresh = l / config.density;
+                const lineAlpha = (0.15 + (l / config.density) * 0.8) * config.opacity;
+                ctx.strokeStyle = `rgba(255, 255, 255, ${lineAlpha})`;
+                ctx.beginPath();
+
+                for (let r = 0; r < rows - 1; r++) {
+                    for (let c = 0; c < cols - 1; c++) {
+                        const x = c * config.step;
+                        const y = r * config.step;
+
+                        const vTL = grid[r * cols + c];
+                        const vTR = grid[r * cols + (c + 1)];
+                        const vBL = grid[(r + 1) * cols + c];
+
+                        if (
+                            (vTL >= thresh && vTR < thresh) || (vTL < thresh && vTR >= thresh) ||
+                            (vTL >= thresh && vBL < thresh) || (vTL < thresh && vBL >= thresh)
+                        ) {
+                            const tTop = (thresh - vTL) / (vTR - vTL || 0.0001);
+                            const tLeft = (thresh - vTL) / (vBL - vTL || 0.0001);
+
+                            if (tTop >= 0 && tTop <= 1 && tLeft >= 0 && tLeft <= 1) {
+                                ctx.moveTo(x + tTop * config.step, y);
+                                ctx.lineTo(x, y + tLeft * config.step);
+                            }
+                        }
+                    }
+                }
+                ctx.stroke();
+            }
+
+            zOffset += config.speed;
+            requestAnimationFrame(draw);
+        }
+
+        requestAnimationFrame(draw);
+
+        // UI Controls
+        const inputSpeed = document.getElementById('param-speed');
+        const inputScale = document.getElementById('param-scale');
+        const inputDensity = document.getElementById('param-density');
+        const inputThickness = document.getElementById('param-thickness');
+        const inputOpacity = document.getElementById('param-opacity');
+
+        inputSpeed.addEventListener('input', (e) => {
+            config.speed = parseFloat(e.target.value);
+            document.getElementById('val-speed').innerText = config.speed;
+        });
+
+        inputScale.addEventListener('input', (e) => {
+            config.scale = parseFloat(e.target.value);
+            document.getElementById('val-scale').innerText = config.scale;
+        });
+
+        inputDensity.addEventListener('input', (e) => {
+            config.density = parseInt(e.target.value);
+            document.getElementById('val-density').innerText = config.density;
+        });
+
+        inputThickness.addEventListener('input', (e) => {
+            config.thickness = parseFloat(e.target.value);
+            document.getElementById('val-thickness').innerText = `${config.thickness}px`;
+        });
+
+        inputOpacity.addEventListener('input', (e) => {
+            config.opacity = parseFloat(e.target.value);
+            document.getElementById('val-opacity').innerText = config.opacity;
+        });
+
+        // Reset Parameters
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            config.speed = 0.0006; inputSpeed.value = 0.0006;
+            config.scale = 0.0022; inputScale.value = 0.0022;
+            config.density = 18; inputDensity.value = 18;
+            config.thickness = 1.2; inputThickness.value = 1.2;
+            config.opacity = 0.85; inputOpacity.value = 0.85;
+
+            document.getElementById('val-speed').innerText = '0.0006';
+            document.getElementById('val-scale').innerText = '0.0022';
+            document.getElementById('val-density').innerText = '18';
+            document.getElementById('val-thickness').innerText = '1.2px';
+            document.getElementById('val-opacity').innerText = '0.85';
+        });
+
+        // Toggle / Collapse Panel
+        const panelHeader = document.getElementById('panel-header');
+        const panelBody = document.getElementById('panel-body');
+        const toggleIcon = document.getElementById('toggle-icon');
+        let collapsed = false;
+
+        panelHeader.addEventListener('click', (e) => {
+            if (e.target.closest('#reset-btn')) return;
+            collapsed = !collapsed;
+            if (collapsed) {
+                panelBody.classList.add('hidden');
+                toggleIcon.style.transform = 'rotate(180deg)';
+            } else {
+                panelBody.classList.remove('hidden');
+                toggleIcon.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        // Code Modal Logic
+        const modal = document.getElementById('code-modal');
+        const openModalBtn = document.getElementById('open-code-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const copyCodeBtn = document.getElementById('copy-code-btn');
+        const codeOutput = document.getElementById('code-output');
+
+        openModalBtn.addEventListener('click', () => {
+            const template = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topo Vector Background</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <script>
+        const SimplexNoise = (function() {
+            const F2 = 0.5 * (Math.sqrt(3.0) - 1.0), G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
+            function Noise() {
+                this.p = new Uint8Array(256); this.perm = new Uint8Array(512); this.permMod12 = new Uint8Array(512);
+                for (let i = 0; i < 256; i++) this.p[i] = Math.floor(Math.random() * 256);
+                for (let i = 0; i < 512; i++) { this.perm[i] = this.p[i & 255]; this.permMod12[i] = (this.perm[i] % 12); }
+            }
+            Noise.prototype.noise2D = function(xin, yin) {
+                let n0, n1, n2; const s = (xin + yin) * F2; const i = Math.floor(xin + s), j = Math.floor(yin + s);
+                const t = (i + j) * G2, X0 = i - t, Y0 = j - t, x0 = xin - X0, y0 = yin - Y0;
+                let i1 = x0 > y0 ? 1 : 0, j1 = x0 > y0 ? 0 : 1;
+                const x1 = x0 - i1 + G2, y1 = y0 - j1 + G2, x2 = x0 - 1.0 + 2.0 * G2, y2 = y0 - 1.0 + 2.0 * G2;
+                const ii = i & 255, jj = j & 255;
+                const g = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
+                let t0 = 0.5 - x0*x0 - y0*y0; n0 = t0 < 0 ? 0 : Math.pow(t0, 4) * (g[this.permMod12[ii + this.perm[jj]]][0]*x0 + g[this.permMod12[ii + this.perm[jj]]][1]*y0);
+                let t1 = 0.5 - x1*x1 - y1*y1; n1 = t1 < 0 ? 0 : Math.pow(t1, 4) * (g[this.permMod12[ii + i1 + this.perm[jj + j1]]][0]*x1 + g[this.permMod12[ii + i1 + this.perm[jj + j1]]][1]*y1);
+                let t2 = 0.5 - x2*x2 - y2*y2; n2 = t2 < 0 ? 0 : Math.pow(t2, 4) * (g[this.permMod12[ii + 1 + this.perm[jj + 1]]][0]*x2 + g[this.permMod12[ii + 1 + this.perm[jj + 1]]][1]*y2);
+                return 70.0 * (n0 + n1 + n2);
+            };
+            return Noise;
+        })();
+
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        const simplex = new SimplexNoise();
+
+        let w, h, cols, rows, zOffset = 0;
+        const config = { speed: ${config.speed}, scale: ${config.scale}, density: ${config.density}, thickness: ${config.thickness}, opacity: ${config.opacity}, step: 12 };
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+            cols = Math.ceil(w / config.step) + 1;
+            rows = Math.ceil(h / config.step) + 1;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function draw() {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, w, h);
+            const grid = new Float32Array(cols * rows);
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    grid[r * cols + c] = (simplex.noise2D(c * config.step * config.scale, r * config.step * config.scale + zOffset) + 1) * 0.5;
+                }
+            }
+
+            ctx.lineWidth = config.thickness;
+            for (let l = 1; l < config.density; l++) {
+                const thresh = l / config.density;
+                const alpha = (0.15 + (l / config.density) * 0.8) * config.opacity;
+                ctx.strokeStyle = \`rgba(255, 255, 255, \${alpha})\`;
+                ctx.beginPath();
+                for (let r = 0; r < rows - 1; r++) {
+                    for (let c = 0; c < cols - 1; c++) {
+                        const x = c * config.step, y = r * config.step;
+                        const vTL = grid[r * cols + c], vTR = grid[r * cols + (c + 1)], vBL = grid[(r + 1) * cols + c];
+                        if ((vTL >= thresh && vTR < thresh) || (vTL < thresh && vTR >= thresh) || (vTL >= thresh && vBL < thresh) || (vTL < thresh && vBL >= thresh)) {
+                            const tTop = (thresh - vTL) / (vTR - vTL || 0.0001);
+                            const tLeft = (thresh - vTL) / (vBL - vTL || 0.0001);
+                            if (tTop >= 0 && tTop <= 1 && tLeft >= 0 && tLeft <= 1) {
+                                ctx.moveTo(x + tTop * config.step, y);
+                                ctx.lineTo(x, y + tLeft * config.step);
+                            }
+                        }
+                    }
+                }
+                ctx.stroke();
+            }
+            zOffset += config.speed;
+            requestAnimationFrame(draw);
+        }
+        draw();
+    <\/script>
+</body>
+</html>`;
+            codeOutput.innerText = template;
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        });
+
+        copyCodeBtn.addEventListener('click', () => {
+            const code = codeOutput.innerText;
+            const temp = document.createElement('textarea');
+            temp.value = code;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+
+            copyCodeBtn.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-emerald-400"></i><span>¡Copiado!</span>`;
+            setTimeout(() => {
+                copyCodeBtn.innerHTML = `<i data-lucide="copy" class="w-3 h-3"></i><span>Copiar</span>`;
+                lucide.createIcons();
+            }, 2000);
+        });
+
+        window.onload = () => {
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
