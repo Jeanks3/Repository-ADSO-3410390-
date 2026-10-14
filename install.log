@@ -1,0 +1,11 @@
+[08:44:51 2026-10-14] FETCHING Version 2.45.3
+[08:44:51 2026-10-14] CREATING /home/jean/.spicetify
+[08:44:51 2026-10-14] DOWNLOADING https://github.com/spicetify/cli/releases/download/v2.45.3/spicetify-2.45.3-linux-amd64.tar.gz
+[08:45:06 2026-10-14] EXTRACTING /home/jean/.spicetify/spicetify.tar.gz
+[08:45:06 2026-10-14] SETTING EXECUTABLE PERMISSIONS TO /home/jean/.spicetify/spicetify
+[08:45:06 2026-10-14] REMOVING /home/jean/.spicetify/spicetify.tar.gz
+[08:45:06 2026-10-14] APPENDING /home/jean/.spicetify to PATH in /home/jean/.bashrc
+[08:45:06 2026-10-14] spicetify v2.45.3 was installed successfully to /home/jean/.spicetify
+[08:45:06 2026-10-14] Open a new terminal or reload your shell profile to use spicetify:
+[08:45:06 2026-10-14]   source "/home/jean/.bashrc"
+[08:45:06 2026-10-14] Then run 'spicetify --help' to get started

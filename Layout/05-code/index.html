@@ -3,38 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>03-Style Guide</title>
-    <link rel="stylesheet" href="../../src/css/master.css">
-
-    <style>
-        img {
-            width: 650px;
-            height: 650px;
-            display: block;
-            margin: 0 auto 1.5rem auto;
-            object-fit:contain;
-        }
-    </style>
+    <title>THRICE</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="mainmenu layout">
-    <!-- NAVEGACIÓN: Botón para volver atrás -->
-    <nav class="back">
-        <a href="../Index.html">
-            <svg><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M232,200a8,8,0,0,1-16,0,88.1,88.1,0,0,0-88-88H51.31l34.35,34.34a8,8,0,0,1-11.32,11.32l-48-48a8,8,0,0,1,0-11.32l48-48A8,8,0,0,1,85.66,61.66L51.31,96H128A104.11,104.11,0,0,1,232,200Z"></path></svg></svg>
-        </a>
-    </nav>
+<body>
+    <script src="JS/app.JS">
 
-    <!-- CONTENIDO PRINCIPAL -->
+    </script>
     <main>
-        <!-- ENCABEZADO -->
-        <header>
-            <h1>05-Code</h1>
-            <h3>Let me cook Nigga</h3>
+        <!--Navbar-->
+        <header id="navbar">
+            <img id="logito" src="img/thriceLogo.svg" alt="logotipo .w.">
+            <nav class="opciones">
+                <a href="#about">About</a>
+                <a href="#nembers">Members</a>
+                <a href="#videos">Videos</a>
+                <a href="#albums">Albums</a>
+            </nav>
         </header>
-        <section>
-            <img src="https://imgs.search.brave.com/kcMcaDAy9aoun2tD2YrojFG2GEAE56Z7FmlmsLgfyhA/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9naWZk/Yi5jb20vaW1hZ2Vz/L3RodW1ibmFpbC9s/b29raW5nLWZvci13/aG8tYXNrZWQtZHVj/ay1zcGlubmluZy02/b2NvdGNtbmN6dnV5/em5sLmdpZg.gif" alt="pato girando en 4k">
-        </section>
+        <!-- Seccion about-->
+         <section id="about">
+                <img id="logo2" src="img/thriceLogo.svg" alt=":v">
+         </section>
+         <section id="info">
+            <h2>ABOUT</h2>
+            <p class="parrafo">Formada en Irvine, California, en 1998, Thrice es una de las bandas más respetadas del rock alternativo y post-hardcore. Se consolidaron a principios de los dosmiles con discos fundamentales como The Illusion of Safety (2002) y su álbum más famoso, The Artist in the Ambulance (2003).
+Lo que verdaderamente distingue a Thrice es su constante evolución sonora y su capacidad para adaptarse a diferentes estilos musicales. Lejos de repetirse, rompieron esquemas con The Alchemy Index (2007-2008), una tetralogía de EPs inspirada en los elementos (Fuego, Agua, Aire y Tierra) que exploró desde el folk hasta el rock experimental.
 
-        <script src="../../src/Js/Fondonojodaa.js"></script>
+A lo largo de su carrera, han integrado con maestría elementos de la electrónica, el blues y el rock progresivo en discos como To Be Everywhere Is to Be Nowhere (2016), reinventándose disco a disco sin perder su identidad.</p>
+
+<button id="boton">leer mas
+    <img src="./img/flecha.svg" alt="flechita">
+</button> 
+
+
+</section>
+    </main>
 </body>
 </html>
