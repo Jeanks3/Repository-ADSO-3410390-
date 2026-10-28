@@ -30,7 +30,7 @@ body {
   color: white;
   background-color: var(--pryimary-color);
   font-family: var(--font-body);
-  min-block-size: 100svh; 
+  min-block-size: 100svh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -57,7 +57,12 @@ a {
   text-decoration-skip-ink: auto;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   text-wrap: balance;
 }
 
@@ -79,6 +84,8 @@ main {
     font-family: var(--font-headings);
     background-color: var(--pryimary-color);
     border-bottom: 3px solid var(--samon);
+    
+    /* Grid de 3 columnas para mantener nav en el centro */
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
@@ -92,7 +99,7 @@ main {
 
     nav.opciones {
       display: flex;
-      justify-self: center;
+      justify-self: center; /* Mantiene los botones en el centro exacto */
       gap: 5rem;
 
       a:is(:link, :visited) {
@@ -111,6 +118,66 @@ main {
         }
       }
     }
+
+    button#mburger {
+      display: none;
+      justify-self: end; /* En móvil se posiciona a la derecha */
+      position: relative;
+      width: 50px;
+      height: 44px;
+      background: none;
+      border: none;
+      appearance: none;
+      transform: scale(.8);
+      cursor: pointer;
+
+      &:focus:not(:focus-visible) {
+        outline: none;
+      }
+
+      span {
+        position: absolute;
+        width: 100%;
+        height: 3px;
+        background: #fff;
+        border-radius: 3px;
+
+        &:nth-of-type(1) {
+          top: 0;
+          left: 0;
+          transition: top .3s;
+        }
+
+        &:nth-of-type(2) {
+          top: 20px;
+          left: 0;
+          transition: opacity .3s;
+        }
+
+        &:nth-of-type(3) {
+          bottom: 0;
+          left: 0;
+          transition: bottom .3s;
+        }
+      }
+
+      &.active span:nth-of-type(1) {
+        top: 20px;
+        transform: rotate(-45deg);
+        transition: top .3s cubic-bezier(.36, -.42, .68, -.56), transform .3s .3s;
+      }
+
+      &.active span:nth-of-type(2) {
+        opacity: 0;
+        transition: opacity .05s .3s;
+      }
+
+      &.active span:nth-of-type(3) {
+        bottom: 20px;
+        transform: rotate(45deg);
+        transition: bottom .3s cubic-bezier(.36, -.42, .68, -.56), transform .3s .3s;
+      }
+    }
   }
 
   section#about {
@@ -123,6 +190,7 @@ main {
     justify-content: center;
     align-items: center;
 
+    /* opacidad de la imagen */
     &::before {
       content: "";
       position: absolute;
@@ -205,8 +273,8 @@ main {
       border: none;
       width: 100px;
       margin-inline: auto;
-      margin-top: 10px;  
-      flex-shrink: 0;    
+      margin-top: 10px;
+      flex-shrink: 0;
     }
 
     div.cards {
@@ -228,8 +296,8 @@ main {
 
         img {
           width: 100%;
-          flex: 1 1 0; 
-          min-height: 0;   
+          flex: 1 1 0;
+          min-height: 0;
           object-fit: cover;
           object-position: center;
           align-self: center;
@@ -285,6 +353,7 @@ main {
 
       /* Ocultar barra de scroll visual */
       scrollbar-width: none;
+
       &::-webkit-scrollbar {
         display: none;
       }
@@ -318,14 +387,8 @@ main {
       align-items: center;
       transition: background-color 0.3s ease, transform 0.2s ease;
 
-      svg.icono-flecha-izq {
-        width: 200px;
-        height: 200px;
-        fill: var(--secondary-color);
-        transition: fill 0.2s ease, transform 0.2s ease;
-      }
-
-      svg.icono-flecha-der{
+      svg.icono-flecha-izq,
+      svg.icono-flecha-der {
         width: 200px;
         height: 200px;
         fill: var(--secondary-color);
@@ -357,9 +420,36 @@ main {
       margin-top: 20px;
       font-size: 20px;
       transition: transform 0.2s ease, background-color 0.2s ease;
-      
+
       &:hover {
         transform: scale(1.02);
+      }
+    }
+  }
+}
+
+/* Media query para pantallas pequeñas */
+@media (max-width: 940px) {
+  main header#navbar {
+    button#mburger {
+      display: block;
+    }
+
+    nav.opciones {
+      display: none;
+      position: absolute;
+      top: 70px;
+      left: 0;
+      width: 100%;
+      background-color: var(--pryimary-color);
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      padding: 2.5rem 0;
+      border-bottom: 3px solid var(--samon);
+
+      &.active {
+        display: flex;
       }
     }
   }
